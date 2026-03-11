@@ -8,8 +8,10 @@ type Props = {
     setZone: (v: string) => void
     date: string
     setDate: (v: string) => void
-    time: string
-    setTime: (v: string) => void
+    startTime: string
+    setStartTime: (v: string) => void
+    endTime: string
+    setEndTime: (v: string) => void
 }
 
 export function ReservationFilters({
@@ -19,9 +21,16 @@ export function ReservationFilters({
     setZone,
     date,
     setDate,
-    time,
-    setTime,
+    startTime,
+    setStartTime,
+    endTime,
+    setEndTime,
 }: Props) {
+    function convertToISO(date: string) {
+        const [day, month, year] = date.split(".")
+        return `${year}-${month}-${day}`
+      }
+      
     return (
     <div className="flex gap-4 flex-wrap mb-6">
 
@@ -33,8 +42,17 @@ export function ReservationFilters({
 
         <Input
             type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
+            step={900} // 900 seconds = 15 minutes
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+        />
+
+        {/* Should have default of startTime + 2 hours */}
+        <Input
+            type="time"
+            step={900} // 900 seconds = 15 minutes
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
         />
 
         <Input
@@ -50,9 +68,9 @@ export function ReservationFilters({
                 <SelectValue placeholder="Zone" />
             </SelectTrigger>
             <SelectContent>
-                <SelectItem value="inside">Inside</SelectItem>
-                <SelectItem value="terrace">Terrace</SelectItem>
-                <SelectItem value="private">Private</SelectItem>
+                <SelectItem value="INSIDE">Inside</SelectItem>
+                <SelectItem value="TERRACE">Terrace</SelectItem>
+                <SelectItem value="PRIATE">Private</SelectItem>
             </SelectContent>
         </Select>
 

@@ -9,6 +9,7 @@ export function useTables() {
 
     useEffect(() => {
         getTables().then(setTables)
+        console.log("The tables: " + getTables())
     }, [])
 
     return tables

@@ -3,6 +3,7 @@ import type { Table } from "@/types/Table"
 
 // Function to find all restaurant tables
 export const getTables = async (): Promise<Table[]> => {
-    const result = await api.get("/tables")
+    const result = await api.get("/tables/all")
+    console.log(result.data)
     return result.data
 }
