@@ -1,11 +1,24 @@
 import { FloorPlan } from "@/components/floorplan/FloorPlan"
+import { useTables } from "@/hooks/useTables"
 
-// admin page-l võiks olla laudade liitmine
 // Kas ka broneeringute tühistamine? Või jätta tühistamine kasutajatele?
 const AdminPage = () => {
+    const tables = useTables()
+
     return (
-        <div>
-            <h1>Admin Page</h1>
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 p-6">
+            <div className="space-y-2">
+                <h1 className="text-3xl font-bold">Admin Floor Plan</h1>
+                <p className="max-w-2xl text-sm text-muted-foreground">
+                    Drag tables to update the restaurant layout.
+                </p>
+            </div>
+
+            <FloorPlan
+                tables={tables}
+                reservedTableIds={[]}
+                adminMode={true}
+            />
         </div>
     )
 }

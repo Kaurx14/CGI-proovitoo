@@ -1,6 +1,3 @@
-import { FloorPlan } from "@/components/floorplan/FloorPlan"
-
-
 // Here we want to display the info of the booking
 // Table nr/id, num of peeps, time etc. 
 const ConfirmationPage = () => {

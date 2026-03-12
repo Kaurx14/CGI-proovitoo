@@ -1,43 +1,85 @@
 import type { Table } from "@/types/Table"
 import { TableNode } from "./TableNode"
+import { useEffect, useState } from "react"
 import { useReservationStore } from "@/store/reservationStore"
+import { updateTablePosition } from "@/api/tablesApi"
 
 // TODO: use table id not the table object
 type Props = {
     tables: Table[]
     reservedTableIds: number[]
     onTableClick?: (table: Table) => void
+    adminMode: boolean
 }
 
 // Main component that renders the floor plan
 export function FloorPlan({
     tables,
+    reservedTableIds: reservedTableIdsProp,
     onTableClick,
+    adminMode
 }: Props) {
-    // Get all the IDs for the reservatons
-    // console.log("Reservations: ", reservations)
-    // const reservedIds = reservations.map((r) => r.restaurantTable?.id)
-    // console.log("Reserved IDs: ", reservedIds)
+    const [visibleTables, setVisibleTables] = useState<Table[]>(tables)
     const {
-        reservedTableIds,
+        reservedTableIds: storeReservedTableIds,
         recommendedTableId
       } = useReservationStore()
-    console.log("Reserved table ids: ", reservedTableIds)
-    console.log("Recommended table id: ", recommendedTableId)
+    const reservedTableIds = reservedTableIdsProp.length > 0 ? reservedTableIdsProp : storeReservedTableIds
+
+    useEffect(() => {
+        setVisibleTables(tables)
+    }, [tables])
+
+    // Dragging and dropping for the admin view
+    const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+      if (!adminMode) return
+
+      const tableId = Number(e.dataTransfer.getData("tableId"))
+      if (!tableId) return
+  
+      const rect = e.currentTarget.getBoundingClientRect()
+  
+      const cellWidth = rect.width / 10
+      const cellHeight = rect.height / 10
+  
+      const x = Math.max(0, Math.min(9, Math.floor((e.clientX - rect.left) / cellWidth)))
+      const y = Math.max(0, Math.min(9, Math.floor((e.clientY - rect.top) / cellHeight)))
+
+      setVisibleTables((current) =>
+        current.map((table) =>
+          table.id === tableId
+            ? { ...table, xPosition: x, yPosition: y }
+            : table
+        )
+      )
+
+      try {
+        await updateTablePosition(tableId, x, y)
+      } catch {
+        setVisibleTables(tables)
+      }
+    }
 
     return (
-        <div className="grid grid-cols-10 grid-rows-10 gap-2 w-full h-[500px] border rounded-lg bg-muted">
-            {tables.map((table) => {
+        <div
+            onDragOver={(e) => {
+                if (adminMode) e.preventDefault()
+            }}
+            onDrop={handleDrop}
+            className="grid grid-cols-10 grid-rows-10 gap-2 w-full h-[500px] border rounded-lg bg-muted">
+            {visibleTables.map((table) => {
                 const { colSpan, rowSpan } = getCellSpan(table.capacity)
+                const isReserved = reservedTableIds.includes(table.id)
                 return (
                     <TableNode
                         key={table.id}
                         table={table}
-                        reserved={reservedTableIds.includes(table.id)}
-                        recommended={table.id === recommendedTableId}
+                        reserved={isReserved}
+                        recommended={!adminMode && table.id === recommendedTableId}
                         colSpan={colSpan}
                         rowSpan={rowSpan}
-                        onClick={onTableClick && !reservedTableIds.includes(table.id) ? () => onTableClick(table) : undefined}
+                        onClick={onTableClick && !isReserved ? () => onTableClick(table) : undefined}
+                        adminMode={adminMode}
                     />
                 )
             })}
@@ -45,6 +87,7 @@ export function FloorPlan({
     )
 }
 
+// retrieves the size of the table on the grid basically
 function getCellSpan(capacity: number): { colSpan: number; rowSpan: number } {
     if (capacity <= 2) {
       return { colSpan: 1, rowSpan: 1 }

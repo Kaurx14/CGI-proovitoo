@@ -12,11 +12,11 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
-public class TableRecommendationService {
+public class TableService {
     private final TableRepository tableRepository;
     private final ReservationRepository reservationRepository;
 
-    public TableRecommendationService(TableRepository tableRepository,
+    public TableService(TableRepository tableRepository,
                                       ReservationRepository reservationRepository) {
         this.tableRepository = tableRepository;
         this.reservationRepository = reservationRepository;
@@ -90,5 +90,14 @@ public class TableRecommendationService {
         }
 
         return score;
+    }
+
+    public RestaurantTable updatePosition(Long id, int x, int y) {
+        RestaurantTable table = tableRepository.findById(id).orElseThrow();
+
+        table.setXPosition(x);
+        table.setYPosition(y);
+
+        return tableRepository.save(table);
     }
 }

@@ -7,3 +7,8 @@ export const getTables = async (): Promise<Table[]> => {
     console.log(result.data)
     return result.data
 }
+
+export const updateTablePosition = async (tableId: number, x: number, y: number) => {
+    const result =await api.patch(`/tables/${tableId}/position`, {x, y})
+    return result.data
+}

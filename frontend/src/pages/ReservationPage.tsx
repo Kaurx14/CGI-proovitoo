@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import { useTables } from "@/hooks/useTables"
-//import { useReservations } from "@/hooks/useReservations"
 import { useReservationStore } from "@/store/reservationStore"
 import { ReservationFilters } from "@/components/reservation/ReservationFilters"
 import { FloorPlan } from "@/components/floorplan/FloorPlan"
@@ -43,17 +42,6 @@ function addHoursToTime(time: string, hours: number): string {
     return `${hh}:${mm}`
   }
 
-function addHoursToIso(startIso: string, hours: number): string {
-    const d = new Date(startIso)
-    d.setHours(d.getHours() + hours)
-    const yyyy = d.getFullYear()
-    const mm = String(d.getMonth() + 1).padStart(2, "0")
-    const dd = String(d.getDate()).padStart(2, "0")
-    const hh = String(d.getHours()).padStart(2, "0")
-    const min = String(d.getMinutes()).padStart(2, "0")
-    return `${yyyy}-${mm}-${dd}T${hh}:${min}:00`
-}
-
 // Main page for reserving a table
 export default function ReservationPage() {
 
@@ -83,6 +71,7 @@ export default function ReservationPage() {
     const [customerName, setCustomerName] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isGuestCountExceeded, setIsGuestCountExceeded] = useState(false)
+    const adminMode = false
 
     useEffect(() => {
         const startIso = buildIsoDateTime(date, startTime)
@@ -94,14 +83,14 @@ export default function ReservationPage() {
       }, [date, startTime, endTime, people, setStoreDate, fetchAll])
 
     useEffect(() => {
-        if (selectedTable == null) return;
+        if (selectedTable == null) return
 
         if (people > selectedTable?.capacity) {
-            setIsGuestCountExceeded(true);
+            setIsGuestCountExceeded(true)
         } else {
-            setIsGuestCountExceeded(false);
+            setIsGuestCountExceeded(false)
         }
-    }), [selectedTable]
+    }, [people, selectedTable])
 
     const handleTableClick = (table: Table) => {
         setSelectedTable(table)
@@ -158,11 +147,20 @@ export default function ReservationPage() {
             endTime={endTime}
             setEndTime={setEndTime}
         />
+        <div className="mb-5 flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm shadow-sm">
+            <p className="text-slate-700">
+                <span className="font-semibold text-red-600">Red tables</span> are already reserved for the selected period.
+            </p>
+            <p className="text-slate-700">
+                <span className="font-semibold text-green-600">Green tables</span> are the current recommendation for your group.
+            </p>
+        </div>
 
         <FloorPlan
             tables={tables}
             reservedTableIds={reservedTableIds}
             onTableClick={handleTableClick}
+            adminMode={adminMode}
         />
 
         {isBookingOpen && selectedTable && (

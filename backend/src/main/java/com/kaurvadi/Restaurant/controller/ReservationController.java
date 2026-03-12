@@ -5,7 +5,7 @@ import com.kaurvadi.Restaurant.entity.Reservation;
 import com.kaurvadi.Restaurant.entity.RestaurantTable;
 import com.kaurvadi.Restaurant.entity.Preference;
 import com.kaurvadi.Restaurant.service.ReservationService;
-import com.kaurvadi.Restaurant.service.TableRecommendationService;
+import com.kaurvadi.Restaurant.service.TableService;
 import java.time.LocalDateTime;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/reservations")
 public class ReservationController {
     private final ReservationService reservationService;
-    private final TableRecommendationService tableRecommendationService;
+    private final TableService tableRecommendationService;
 
-    public ReservationController(ReservationService reservationService, TableRecommendationService tableRecommendationService) {
+    public ReservationController(ReservationService reservationService, TableService tableRecommendationService) {
         this.reservationService = reservationService;
         this.tableRecommendationService = tableRecommendationService;
     }

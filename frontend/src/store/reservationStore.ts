@@ -36,8 +36,7 @@ type ReservationStore = {
   }) => Promise<void>
 }
 
-export const useReservationStore = create<ReservationStore>((set, get) => ({
-  //reservations: [],
+export const useReservationStore = create<ReservationStore>((set) => ({
   reservedTableIds: [],
   loading: false,
   error: undefined,
@@ -75,7 +74,6 @@ export const useReservationStore = create<ReservationStore>((set, get) => ({
     
     // combine date + time to ISO datetime
     const startDateTime = `${date}T${startTime}`
-    const endDateTime = `${date}T${endTime}`
     // create in backend
     await createReservation({ tableId, customerName, guestCount, startTime: startDateTime, date, endTime, restaurantTable })
 

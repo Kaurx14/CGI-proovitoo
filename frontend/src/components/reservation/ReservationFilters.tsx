@@ -26,11 +26,6 @@ export function ReservationFilters({
     endTime,
     setEndTime,
 }: Props) {
-    function convertToISO(date: string) {
-        const [day, month, year] = date.split(".")
-        return `${year}-${month}-${day}`
-      }
-      
     return (
     <div className="flex gap-4 flex-wrap mb-6">
 

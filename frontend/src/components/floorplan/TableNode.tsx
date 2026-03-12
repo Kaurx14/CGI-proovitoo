@@ -8,14 +8,19 @@ type Props = {
     colSpan: number
     rowSpan: number
     onClick?: () => void
+    adminMode:boolean
 }
 
 // Visual representation of a single table in the floor plan
 // Tables are positioned absolutely using x and y coordinates
 // States of a table: reserved -> red, recommended -> green, free -> gray
-export function TableNode({ table, reserved, recommended, colSpan, rowSpan, onClick }: Props) {
+export function TableNode({ table, reserved, recommended, colSpan, rowSpan, onClick, adminMode }: Props) {
     return (
         <div
+            draggable={adminMode}
+            onDragStart={(e) => {
+                e.dataTransfer.setData("tableId", String(table.id))
+            }}
             onClick={onClick}
             // Treat table.x / table.y as grid coordinates (0–9) and place table there.
             style={{
