@@ -106,7 +106,7 @@ export default function ReservationPage() {
         if (!selectedTable || !date || !startTime || !customerName) return
     
         try {
-             setIsSubmitting(true) 
+            setIsSubmitting(true) 
 
             await bookTable({
                 tableId: selectedTable.id,
@@ -117,8 +117,6 @@ export default function ReservationPage() {
                 endTime,
                 restaurantTable: selectedTable,
             })
-
-
          
             handleCloseDialog()
             navigate("/confirmation")
@@ -134,6 +132,13 @@ export default function ReservationPage() {
         <h1 className="text-2xl font-bold mb-6">
             Reserve a Table
         </h1>
+
+        <div className="m-6" >
+            <Button size="lg" variant="default" onClick={() => navigate("/admin")}>
+                Change to Admin Mode
+            </Button>
+        </div>
+        
 
         <ReservationFilters
             people={people}
@@ -217,7 +222,7 @@ export default function ReservationPage() {
                         onClick={handleConfirmReservation}
                         disabled={isSubmitting || !customerName || isGuestCountExceeded}
                     >
-                    {isSubmitting ? "Booking..." : "Confirm reservation"}
+                        {isSubmitting ? "Booking..." : "Confirm reservation"}
                     </Button>
                 </div>
                 </div>
