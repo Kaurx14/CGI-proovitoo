@@ -18,14 +18,13 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 @Service
 public class TableService {
     private final TableRepository tableRepository;
-    private final ReservationRepository reservationRepository;
+    private final ReservationService reservationService;
     private static final int GRID_WIDTH = 10;
     private static final int GRID_HEIGHT = 10;
 
-    public TableService(TableRepository tableRepository,
-                                      ReservationRepository reservationRepository) {
+    public TableService(TableRepository tableRepository, ReservationService reservationService) {
         this.tableRepository = tableRepository;
-        this.reservationRepository = reservationRepository;
+        this.reservationService = reservationService;
     }
 
     // Method to recommend a table to user based on their preferences, num of guests,time, zone etc
@@ -40,11 +39,7 @@ public class TableService {
         List<RestaurantTable> tables = tableRepository.findAll();
 
         // Get reservations overlapping with this time
-        List<Reservation> reservations =
-                reservationRepository.findByStartTimeBeforeAndEndTimeAfter(
-                        endTime,
-                        startTime
-                );
+        List<Reservation> reservations = reservationService.getOverlappingReservations(startTime, endTime);
 
         // Collect reserved table ids
         Set<Long> reservedTables = new HashSet<>();
