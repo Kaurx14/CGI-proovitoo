@@ -136,7 +136,7 @@ export default function ReservationPage() {
         </h1>
 
         <div className="m-6" >
-            <Button size="lg" variant="default" onClick={() => navigate("/admin")}>
+            <Button size="lg" variant="outline" onClick={() => navigate("/admin")}>
                 Change to Admin Mode
             </Button>
         </div>

@@ -13,7 +13,7 @@ const AdminPage = () => {
             <div className="space-y-2 ">
                 <h1 className="text-3xl font-bold">Admin Floor Plan</h1>
                 <div className="m-6" >
-                    <Button size="lg" variant="default" onClick={() => navigate("/reserve")}>
+                    <Button size="lg" variant="outline" onClick={() => navigate("/reserve")}>
                         Return to Reservation Page
                     </Button>
                 </div>
