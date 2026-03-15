@@ -187,12 +187,12 @@ export default function ReservationPage() {
 
         {isBookingOpen && selectedTable && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg space-y-4">
+                <div className="w-full max-w-md space-y-4 rounded-lg bg-card p-6 text-card-foreground shadow-lg">
                 <h2 className="text-xl font-semibold">
                     Book Table {selectedTable.id}
                 </h2>
 
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                     {selectedTable.capacity} seats · Zone: {selectedTable.zone}
                 </p>
 
