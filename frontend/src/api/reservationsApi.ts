@@ -1,6 +1,7 @@
 import { api } from "./client"
 import type { Reservation } from "@/types/Reservation"
 import type { Preference } from "@/types/Preference"
+import type { TableZone } from "@/types/Table"
 
 // Function to find all reservations for a given date
 export const getReservations = async (date: string): Promise<Reservation[]> => {
@@ -29,9 +30,15 @@ export const getReservedTableIds = async (startTime: string, endTime: string): P
   return result.data
 }
 
-export const getRecommendedTable = async (guests: number, startTime: string, endTime: string, preferences?: Preference[]): Promise<number | null> => {
+export const getRecommendedTable = async (
+  guests: number,
+  startTime: string,
+  endTime: string,
+  zone?: TableZone,
+  preferences?: Preference[]
+): Promise<number | null> => {
   const result = await api.get("/reservations/recommended-table", {
-    params: { guests, startTime, endTime, preferences },
+    params: { guests, startTime, endTime, zone, preferences },
   })
   return result.data
 }

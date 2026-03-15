@@ -1,11 +1,12 @@
+import { TableZone, type TableZone as TableZoneType } from "@/types/Table"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 type Props = {
     people: number
     setPeople: (v: number) => void
-    zone: string
-    setZone: (v: string) => void
+    zone: TableZoneType | ""
+    setZone: (v: TableZoneType | "") => void
     date: string
     setDate: (v: string) => void
     startTime: string
@@ -60,12 +61,13 @@ export function ReservationFilters({
 
         <Select value={zone} onValueChange={setZone}>
             <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Zone" />
+                <SelectValue placeholder="All" />
             </SelectTrigger>
             <SelectContent>
-                <SelectItem value="INSIDE">Inside</SelectItem>
-                <SelectItem value="TERRACE">Terrace</SelectItem>
-                <SelectItem value="PRIATE">Private</SelectItem>
+                <SelectItem value={TableZone.ALL}>All</SelectItem>
+                <SelectItem value={TableZone.INDOOR}>Indoor</SelectItem>
+                <SelectItem value={TableZone.TERRACE}>Terrace</SelectItem>
+                <SelectItem value={TableZone.PRIVATE_ROOM}>Private room</SelectItem>
             </SelectContent>
         </Select>
 

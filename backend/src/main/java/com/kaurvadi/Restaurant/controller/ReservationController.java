@@ -4,6 +4,7 @@ import com.kaurvadi.Restaurant.dto.ReservationRequest;
 import com.kaurvadi.Restaurant.entity.Reservation;
 import com.kaurvadi.Restaurant.entity.RestaurantTable;
 import com.kaurvadi.Restaurant.entity.Preference;
+import com.kaurvadi.Restaurant.entity.Zone;
 import com.kaurvadi.Restaurant.service.ReservationService;
 import com.kaurvadi.Restaurant.service.TableService;
 import java.time.LocalDateTime;
@@ -63,6 +64,7 @@ public class ReservationController {
             @RequestParam int guests,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime,
+            @RequestParam(required = false) Zone zone,
             @RequestParam(required = false) List<Preference> preferences
     ) {
 
@@ -70,6 +72,7 @@ public class ReservationController {
                 guests,
                 startTime,
                 endTime,
+                zone,
                 preferences
         );
 

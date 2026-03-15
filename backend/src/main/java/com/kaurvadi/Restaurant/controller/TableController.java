@@ -1,7 +1,6 @@
 package com.kaurvadi.Restaurant.controller;
 
 import com.kaurvadi.Restaurant.service.TableService;
-import com.kaurvadi.Restaurant.service.TableService;
 import com.kaurvadi.Restaurant.entity.RestaurantTable;
 import com.kaurvadi.Restaurant.dto.TablePositionRequest;
 import com.kaurvadi.Restaurant.repository.TableRepository;
@@ -33,7 +32,6 @@ public class TableController {
             @PathVariable Long id,
             @RequestBody TablePositionRequest request
     ) {
-        return tableService.updatePosition(id, request.x(), request.y());
+        return tableService.updatePosition(id, request.x(), request.y(), request.zone());
     }
 }
-

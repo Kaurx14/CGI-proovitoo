@@ -3,6 +3,16 @@ import { TableNode } from "./TableNode"
 import { useEffect, useState } from "react"
 import { useReservationStore } from "@/store/reservationStore"
 import { updateTablePosition } from "@/api/tablesApi"
+import { TableZone } from "@/types/Table"
+import {
+    FLOORPLAN_ZONES,
+    GRID_COLUMNS,
+    GRID_ROWS,
+    canPlaceTable,
+    clampPlacement,
+    getCellSpan,
+    resolveZoneForPlacement,
+} from "@/utils/floorplan"
 
 // TODO: use table id not the table object
 type Props = {
@@ -10,6 +20,7 @@ type Props = {
     reservedTableIds: number[]
     onTableClick?: (table: Table) => void
     adminMode: boolean
+    activeZone?: TableZone | ""
 }
 
 // Main component that renders the floor plan
@@ -17,7 +28,8 @@ export function FloorPlan({
     tables,
     reservedTableIds: reservedTableIdsProp,
     onTableClick,
-    adminMode
+    adminMode,
+    activeZone,
 }: Props) {
     const [visibleTables, setVisibleTables] = useState<Table[]>(tables)
     const {
@@ -39,24 +51,47 @@ export function FloorPlan({
   
       const rect = e.currentTarget.getBoundingClientRect()
   
-      const cellWidth = rect.width / 10
-      const cellHeight = rect.height / 10
-  
-      const x = Math.max(0, Math.min(9, Math.floor((e.clientX - rect.left) / cellWidth)))
-      const y = Math.max(0, Math.min(9, Math.floor((e.clientY - rect.top) / cellHeight)))
+      const cellWidth = rect.width / GRID_COLUMNS
+      const cellHeight = rect.height / GRID_ROWS
+
+      const tableToMove = visibleTables.find((table) => table.id === tableId)
+      if (!tableToMove) return
+
+      const span = getCellSpan(tableToMove.capacity)
+      const rawX = Math.floor((e.clientX - rect.left) / cellWidth)
+      const rawY = Math.floor((e.clientY - rect.top) / cellHeight)
+      const { x, y } = clampPlacement(rawX, rawY, span)
+      const zone = resolveZoneForPlacement(x, y, span.colSpan, span.rowSpan)
+
+      if (!zone) {
+        return
+      }
+
+      const candidateTable = {
+        ...tableToMove,
+        xPosition: x,
+        yPosition: y,
+        zone,
+      }
+
+      if (!canPlaceTable(candidateTable, visibleTables)) {
+        return
+      }
+
+      const previousTables = visibleTables
 
       setVisibleTables((current) =>
         current.map((table) =>
           table.id === tableId
-            ? { ...table, xPosition: x, yPosition: y }
+            ? candidateTable
             : table
         )
       )
 
       try {
-        await updateTablePosition(tableId, x, y)
+        await updateTablePosition(tableId, x, y, zone)
       } catch {
-        setVisibleTables(tables)
+        setVisibleTables(previousTables)
       }
     }
 
@@ -66,19 +101,47 @@ export function FloorPlan({
                 if (adminMode) e.preventDefault()
             }}
             onDrop={handleDrop}
-            className="grid grid-cols-10 grid-rows-10 gap-2 w-full h-[500px] border rounded-lg bg-muted">
+            className="relative grid h-[500px] w-full grid-cols-10 grid-rows-10 gap-2 overflow-hidden rounded-lg border bg-muted"
+        >
+            {FLOORPLAN_ZONES.map((zone) => (
+                <div
+                    key={zone.zone}
+                    style={{
+                        gridColumn: `${zone.x + 1} / span ${zone.width}`,
+                        gridRow: `${zone.y + 1} / span ${zone.height}`,
+                    }}
+                    className={
+                        zone.zone === "TERRACE"
+                            ? "rounded-md bg-emerald-100/70"
+                            : zone.zone === "INDOOR"
+                              ? "rounded-md bg-amber-100/70"
+                              : "rounded-md bg-sky-100/70"
+                    }
+                >
+                    <div className="p-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        {zone.zone === "PRIVATE_ROOM" ? "Private room" : zone.zone.toLowerCase()}
+                    </div>
+                </div>
+            ))}
             {visibleTables.map((table) => {
                 const { colSpan, rowSpan } = getCellSpan(table.capacity)
                 const isReserved = reservedTableIds.includes(table.id)
+                const isOutsideSelectedZone = !adminMode && Boolean(activeZone) && table.zone !== activeZone && activeZone !== TableZone.ALL
+
+                const handleClick = !isReserved && !isOutsideSelectedZone && onTableClick
+                    ? () => onTableClick(table)
+                    : undefined
+
                 return (
                     <TableNode
                         key={table.id}
                         table={table}
                         reserved={isReserved}
                         recommended={!adminMode && table.id === recommendedTableId}
+                        disabled={isOutsideSelectedZone}
                         colSpan={colSpan}
                         rowSpan={rowSpan}
-                        onClick={onTableClick && !isReserved ? () => onTableClick(table) : undefined}
+                        onClick={handleClick}
                         adminMode={adminMode}
                     />
                 )
@@ -86,21 +149,3 @@ export function FloorPlan({
         </div>
     )
 }
-
-// retrieves the size of the table on the grid basically
-function getCellSpan(capacity: number): { colSpan: number; rowSpan: number } {
-    if (capacity <= 2) {
-      return { colSpan: 1, rowSpan: 1 }
-    }
-  
-    if (capacity <= 4) {
-      return { colSpan: 2, rowSpan: 1 }
-    }
-  
-    if (capacity <= 6) {
-      return { colSpan: 2, rowSpan: 2 }
-    }
-  
-    // 8 or more seats → big table
-    return { colSpan: 3, rowSpan: 2 }
-  }

@@ -5,6 +5,7 @@ type Props = {
     table: Table
     reserved: boolean
     recommended: boolean
+    disabled?: boolean
     colSpan: number
     rowSpan: number
     onClick?: () => void
@@ -14,7 +15,7 @@ type Props = {
 // Visual representation of a single table in the floor plan
 // Tables are positioned absolutely using x and y coordinates
 // States of a table: reserved -> red, recommended -> green, free -> gray
-export function TableNode({ table, reserved, recommended, colSpan, rowSpan, onClick, adminMode }: Props) {
+export function TableNode({ table, reserved, recommended, disabled = false, colSpan, rowSpan, onClick, adminMode }: Props) {
     return (
         <div
             draggable={adminMode}
@@ -29,7 +30,9 @@ export function TableNode({ table, reserved, recommended, colSpan, rowSpan, onCl
             }}
             title={`Table ${table.id} – ${table.capacity} seats`}
             className={cn(
-                "flex items-center justify-center cursor-pointer text-sm font-medium rounded-md w-full h-full",
+                "z-10 flex h-full w-full items-center justify-center rounded-md text-sm font-medium transition-opacity",
+                !disabled && "cursor-pointer",
+                disabled && "cursor-not-allowed opacity-40",
                 reserved && "bg-red-400",
                 recommended && "bg-green-400 ring-4 ring-green-200",
                 !reserved && !recommended && "bg-gray-300"

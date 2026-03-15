@@ -2,6 +2,7 @@ import { create } from "zustand"
 import { createReservation, getRecommendedTable, getReservedTableIds } from "@/api/reservationsApi"
 import type { Table } from "@/types/Table"
 import type { Preference } from "@/types/Preference"
+import type { TableZone } from "@/types/Table"
 
 
 type ReservationStore = {
@@ -15,6 +16,7 @@ type ReservationStore = {
     guests: number,
     startTime: string,
     endTime: string,
+    zone?: TableZone,
     preferences?: Preference[]
   ) => Promise<void>
 
@@ -42,11 +44,11 @@ export const useReservationStore = create<ReservationStore>((set) => ({
   error: undefined,
   currentDate: null,
   recommendedTableId: null,
-  fetchRecommendedTable: async (guests, startTime, endTime, preferences) => {
+  fetchRecommendedTable: async (guests, startTime, endTime, zone, preferences) => {
     set({ loading: true, error: undefined })
   
     try {
-      const tableId = await getRecommendedTable(guests, startTime, endTime, preferences)
+      const tableId = await getRecommendedTable(guests, startTime, endTime, zone, preferences)
   
       set({ recommendedTableId: tableId })
     } catch (e) {

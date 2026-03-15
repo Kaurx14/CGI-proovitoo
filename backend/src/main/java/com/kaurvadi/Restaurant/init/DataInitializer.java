@@ -38,10 +38,10 @@ public class DataInitializer {
         Random random = new Random();
 
         // Creating a vertical corridor for walking space
-        for (int y = 0; y < 10; y++) {
-            occupied[8][y] = true;
-            occupied[9][y] = true;
-        }
+        // for (int y = 0; y < 10; y++) {
+        //     occupied[8][y] = true;
+        //     occupied[9][y] = true;
+        // }
 
          // ZONE CLUSTERS: terrace at top, indoor middle, private room bottom
          List<ZoneArea> zones = List.of(
@@ -50,10 +50,6 @@ public class DataInitializer {
                 new ZoneArea(Zone.PRIVATE_ROOM, 0, 8, 8, 2)
         );
 
-        /*
-         PLACE BIG TABLES FIRST
-         prevents fragmentation
-         */
          List<Integer> capacities = List.of(
             8,8,8,
             6,6,6,6,

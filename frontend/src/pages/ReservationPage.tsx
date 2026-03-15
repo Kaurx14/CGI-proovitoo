@@ -3,7 +3,7 @@ import { useTables } from "@/hooks/useTables"
 import { useReservationStore } from "@/store/reservationStore"
 import { ReservationFilters } from "@/components/reservation/ReservationFilters"
 import { FloorPlan } from "@/components/floorplan/FloorPlan"
-import type { Table } from "@/types/Table"
+import { TableZone, type Table, type TableZone as TableZoneType } from "@/types/Table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useNavigate } from "react-router-dom"
@@ -55,7 +55,7 @@ export default function ReservationPage() {
     const [startTime, setStartTime] = useState(() => getDefaultDateTime().time)
     const [endTime, setEndTime] = useState(() => addHoursToTime(getDefaultDateTime().time, 2)) // By default 2 hours
     const [people, setPeople] = useState(2)
-    const [zone, setZone] = useState("")
+    const [zone, setZone] = useState<TableZoneType | "">("")
 
     //const reservations = useReservations(date)
     const {
@@ -79,8 +79,8 @@ export default function ReservationPage() {
       
         setStoreDate(date)
         fetchAll(startIso, endIso)
-        fetchRecommendedTable(people, startIso, endIso)
-      }, [date, startTime, endTime, people, setStoreDate, fetchAll])
+        fetchRecommendedTable(people, startIso, endIso, zone || undefined)
+      }, [date, startTime, endTime, people, zone, setStoreDate, fetchAll, fetchRecommendedTable])
 
     useEffect(() => {
         if (selectedTable == null) return
@@ -159,6 +159,11 @@ export default function ReservationPage() {
             <p className="text-slate-700">
                 <span className="font-semibold text-green-600">Green tables</span> are the current recommendation for your group.
             </p>
+            {zone && zone !== TableZone.ALL && (
+                <p className="text-slate-700">
+                    Only tables in the <span className="font-semibold">{zone === TableZone.PRIVATE_ROOM ? "private room" : zone.toLowerCase()}</span> zone can be selected.
+                </p>
+            )}
         </div>
 
         <FloorPlan
@@ -166,6 +171,7 @@ export default function ReservationPage() {
             reservedTableIds={reservedTableIds}
             onTableClick={handleTableClick}
             adminMode={adminMode}
+            activeZone={zone}
         />
 
         {isBookingOpen && selectedTable && (
