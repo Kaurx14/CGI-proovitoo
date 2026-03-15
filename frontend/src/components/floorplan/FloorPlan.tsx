@@ -5,6 +5,7 @@ import { useReservationStore } from "@/store/reservationStore"
 import { updateTablePosition } from "@/api/tablesApi"
 import { TableZone } from "@/types/Table"
 import {
+    FLOORPLAN_FEATURES,
     FLOORPLAN_ZONES,
     GRID_COLUMNS,
     GRID_ROWS,
@@ -14,22 +15,23 @@ import {
     resolveZoneForPlacement,
 } from "@/utils/floorplan"
 
-// TODO: use table id not the table object
 type Props = {
     tables: Table[]
     reservedTableIds: number[]
     onTableClick?: (table: Table) => void
     adminMode: boolean
     activeZone?: TableZone | ""
+    className?: string
 }
 
-// Main component that renders the floor plan
+// Main component that renders the floor plan. Used both by resrevation page and admin page
 export function FloorPlan({
     tables,
     reservedTableIds: reservedTableIdsProp,
     onTableClick,
     adminMode,
     activeZone,
+    className = "",
 }: Props) {
     const [visibleTables, setVisibleTables] = useState<Table[]>(tables)
     const {
@@ -43,6 +45,7 @@ export function FloorPlan({
     }, [tables])
 
     // Dragging and dropping for the admin view
+    // Clamping logic and other math here created by AI
     const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
       if (!adminMode) return
 
@@ -58,8 +61,10 @@ export function FloorPlan({
       if (!tableToMove) return
 
       const span = getCellSpan(tableToMove.capacity)
-      const rawX = Math.floor((e.clientX - rect.left) / cellWidth)
-      const rawY = Math.floor((e.clientY - rect.top) / cellHeight)
+      const pointerX = (e.clientX - rect.left) / cellWidth
+      const pointerY = (e.clientY - rect.top) / cellHeight
+      const rawX = Math.round(pointerX - span.colSpan / 2)
+      const rawY = Math.round(pointerY - span.rowSpan / 2)
       const { x, y } = clampPlacement(rawX, rawY, span)
       const zone = resolveZoneForPlacement(x, y, span.colSpan, span.rowSpan)
 
@@ -101,7 +106,7 @@ export function FloorPlan({
                 if (adminMode) e.preventDefault()
             }}
             onDrop={handleDrop}
-            className="relative grid h-[500px] w-full grid-cols-10 grid-rows-10 gap-2 overflow-hidden rounded-lg border bg-muted"
+            className={`relative grid size-full grid-cols-10 grid-rows-10 gap-2 overflow-hidden rounded-lg border bg-muted ${className}`}
         >
             {FLOORPLAN_ZONES.map((zone) => (
                 <div
@@ -121,6 +126,18 @@ export function FloorPlan({
                     <div className="p-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
                         {zone.zone === "PRIVATE_ROOM" ? "Private room" : zone.zone.toLowerCase()}
                     </div>
+                </div>
+            ))}
+            {FLOORPLAN_FEATURES.map((feature) => (
+                <div
+                    key={feature.id}
+                    style={{
+                        gridColumn: `${feature.x + 1} / span ${feature.width}`,
+                        gridRow: `${feature.y + 1} / span ${feature.height}`,
+                    }}
+                    className={`pointer-events-none z-0 rounded-md border border-dashed p-1 text-[10px] font-semibold uppercase tracking-wide text-slate-700 ${feature.className}`}
+                >
+                    {feature.label}
                 </div>
             ))}
             {visibleTables.map((table) => {

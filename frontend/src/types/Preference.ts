@@ -1,7 +1,7 @@
 export const Preference = {
     WINDOW: "WINDOW",
-    QUIET: "QUIET",
+    PRIVATE: "PRIVATE",
     NEAR_PLAY_AREA: "NEAR_PLAY_AREA",
-  } as const
+} as const
   
-  export type Preference = (typeof Preference)[keyof typeof Preference]
+export type Preference = (typeof Preference)[keyof typeof Preference]

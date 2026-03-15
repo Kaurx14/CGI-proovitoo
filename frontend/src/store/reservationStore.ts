@@ -4,14 +4,28 @@ import type { Table } from "@/types/Table"
 import type { Preference } from "@/types/Preference"
 import type { TableZone } from "@/types/Table"
 
+// Represents a reservation that has just been sucessfully created
+// Used in confirmation page.
+type ConfirmedReservation = {
+  id: number
+  tableId: number
+  customerName: string
+  guestCount: number
+  date: string
+  startTime: string
+  endTime: string
+  zone: TableZone
+  preference: Preference | ""
+}
 
 type ReservationStore = {
-  //reservations: Reservation[]
-  reservedTableIds: number[]
+  reservedTableIds: number[] // tables that are already reserved for the selected period
   loading: boolean
   error?: string
   currentDate: string | null
-  recommendedTableId: number | null
+  recommendedTableId: number | null // backend recommendation
+  lastConfirmedReservation: ConfirmedReservation | null // last successfully booked reservation (for confirmation page)
+  // Requests a recommended table from the backend
   fetchRecommendedTable: (
     guests: number,
     startTime: string,
@@ -26,7 +40,7 @@ type ReservationStore = {
   // fetching
   fetchAll: (startTime: string, endTime: string) => Promise<void>
 
-  // booking + update
+  // creates a reservation and stores confirmation info locally
   bookTable: (params: {
     tableId: number
     customerName: string
@@ -35,6 +49,7 @@ type ReservationStore = {
     startTime: string
     endTime: string
     restaurantTable: Table
+    preference: Preference | ""
   }) => Promise<void>
 }
 
@@ -44,6 +59,7 @@ export const useReservationStore = create<ReservationStore>((set) => ({
   error: undefined,
   currentDate: null,
   recommendedTableId: null,
+  lastConfirmedReservation: null,
   fetchRecommendedTable: async (guests, startTime, endTime, zone, preferences) => {
     set({ loading: true, error: undefined })
   
@@ -72,17 +88,25 @@ export const useReservationStore = create<ReservationStore>((set) => ({
     }
   },
 
-  bookTable: async ({ tableId, customerName, guestCount, startTime, date, endTime, restaurantTable }) => {
-    
-    // combine date + time to ISO datetime
+  // Creates a reservation in the backend and stores confirmation details locally
+  bookTable: async ({ tableId, customerName, guestCount, startTime, date, endTime, restaurantTable, preference }) => {
+    // combine date + time to ISO datetime. Format expected by backend
     const startDateTime = `${date}T${startTime}`
     // create in backend
-    await createReservation({ tableId, customerName, guestCount, startTime: startDateTime, date, endTime, restaurantTable })
+    const reservation = await createReservation({ tableId, customerName, guestCount, startTime: startDateTime, date, endTime, restaurantTable })
 
-    // Now unnecessary since we route the user to confirmation page
-    // refresh list (by date if we have one, otherwise all)
-    // const { fetchAll } = get()
-    //   await fetchAll(startDateTime, endDateTime)
-    
+    set({
+      lastConfirmedReservation: {
+        id: reservation.id,
+        tableId,
+        customerName,
+        guestCount,
+        date,
+        startTime,
+        endTime,
+        zone: restaurantTable.zone,
+        preference,
+      }
+    })
   },
 }))

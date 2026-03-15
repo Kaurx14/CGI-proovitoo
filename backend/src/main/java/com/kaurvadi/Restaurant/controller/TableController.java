@@ -14,19 +14,19 @@ public class TableController {
 
     private final TableService tableService;
 
-    // I think table repository should not be in the contoller script, should be in the service script
-    // Will temporarily use it here
     private final TableRepository tableRepository;
     public TableController(TableService recommendationService, TableRepository tableRepository) {
         this.tableRepository = tableRepository;
         this.tableService = recommendationService;
     }
 
+    // Ednpoint for retrieving all tables in the repository
     @GetMapping("/all")
     public List<RestaurantTable> getAllTables() {
         return tableRepository.findAll();
     }
 
+    // Endpoint to update the position of a table
     @PatchMapping("/{id}/position")
     public RestaurantTable updateTablePosition(
             @PathVariable Long id,

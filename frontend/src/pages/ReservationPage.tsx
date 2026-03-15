@@ -4,43 +4,11 @@ import { useReservationStore } from "@/store/reservationStore"
 import { ReservationFilters } from "@/components/reservation/ReservationFilters"
 import { FloorPlan } from "@/components/floorplan/FloorPlan"
 import { TableZone, type Table, type TableZone as TableZoneType } from "@/types/Table"
+import { type Preference } from "@/types/Preference"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { getDefaultDateTime, addHoursToTime, parseTimeToMinutes, buildIsoDateTime } from "@/utils/timeUtils"
 import { useNavigate } from "react-router-dom"
-
-function getDefaultDateTime() {
-    const now = new Date()
-    const intervalMs = 15 * 60 * 1000 // 15 minutes
-    const roundedMs = Math.ceil(now.getTime() / intervalMs) * intervalMs
-    const rounded = new Date(roundedMs)
-  
-    const yyyy = rounded.getFullYear()
-    const mm = String(rounded.getMonth() + 1).padStart(2, "0")
-    const dd = String(rounded.getDate()).padStart(2, "0")
-    const hh = String(rounded.getHours()).padStart(2, "0")
-    const min = String(rounded.getMinutes()).padStart(2, "0")
-  
-    return {
-      date: `${yyyy}-${mm}-${dd}`,
-      time: `${hh}:${min}`,
-    }
-}
-
-function buildIsoDateTime(date: string, time: string): string {
-    // date: YYYY-MM-DD, time: HH:mm
-    return `${date}T${time}:00`
-}
-
-function addHoursToTime(time: string, hours: number): string {
-    // time: "HH:mm"
-    const [h, m] = time.split(":").map(Number)
-    const d = new Date(0) // epoch
-    d.setUTCHours(h, m, 0, 0)
-    d.setUTCHours(d.getUTCHours() + hours)
-    const hh = String(d.getUTCHours()).padStart(2, "0")
-    const mm = String(d.getUTCMinutes()).padStart(2, "0")
-    return `${hh}:${mm}`
-  }
 
 // Main page for reserving a table
 export default function ReservationPage() {
@@ -48,16 +16,13 @@ export default function ReservationPage() {
     // Load the tables
     const tables = useTables()
     const navigate = useNavigate()
-
-    // State for reservation filters
-    // Perhaps save to local storage?
     const [date, setDate] = useState(() => getDefaultDateTime().date)
     const [startTime, setStartTime] = useState(() => getDefaultDateTime().time)
     const [endTime, setEndTime] = useState(() => addHoursToTime(getDefaultDateTime().time, 2)) // By default 2 hours
     const [people, setPeople] = useState(2)
     const [zone, setZone] = useState<TableZoneType | "">("")
+    const [preference, setPreference] = useState<Preference | "">("")
 
-    //const reservations = useReservations(date)
     const {
         reservedTableIds,
         setDate: setStoreDate,
@@ -73,15 +38,41 @@ export default function ReservationPage() {
     const [isGuestCountExceeded, setIsGuestCountExceeded] = useState(false)
     const adminMode = false
 
+    // Change start time of reservation
+    const handleStartTimeChange = (value: string) => {
+        setStartTime(value)
+
+        if (parseTimeToMinutes(endTime) < parseTimeToMinutes(value) + 60) {
+            setEndTime(addHoursToTime(value, 1))
+        }
+    }
+
+    // Change end time of reservation
+    // End time can't be earlier than start time. 
+    // If user selects an end time earlier than start time, it is automatically
+    // changed to start time + 1 hour. This ensures that a reservation of a table
+    // lasts at least 1 hour.
+    const handleEndTimeChange = (value: string) => {
+        if (parseTimeToMinutes(value) < parseTimeToMinutes(startTime) + 60) {
+            setEndTime(addHoursToTime(startTime, 1))
+            return
+        }
+
+        setEndTime(value)
+    }
+
+    // Reload the tables when user changes filters
     useEffect(() => {
         const startIso = buildIsoDateTime(date, startTime)
         const endIso = buildIsoDateTime(date, endTime)
+        const selectedPreferences = preference ? [preference] : undefined
       
         setStoreDate(date)
         fetchAll(startIso, endIso)
-        fetchRecommendedTable(people, startIso, endIso, zone || undefined)
-      }, [date, startTime, endTime, people, zone, setStoreDate, fetchAll, fetchRecommendedTable])
+        fetchRecommendedTable(people, startIso, endIso, zone || undefined, selectedPreferences)
+    }, [date, startTime, endTime, people, zone, preference, setStoreDate, fetchAll, fetchRecommendedTable])
 
+    // Can not book a table when guest count > table capacity
     useEffect(() => {
         if (selectedTable == null) return
 
@@ -102,6 +93,7 @@ export default function ReservationPage() {
         setCustomerName("")
     }
 
+    // Confirm reservation, call backend, navigate to confirmation page
     const handleConfirmReservation = async () => {
         if (!selectedTable || !date || !startTime || !customerName) return
     
@@ -116,6 +108,7 @@ export default function ReservationPage() {
                 date,
                 endTime,
                 restaurantTable: selectedTable,
+                preference,
             })
          
             handleCloseDialog()
@@ -127,7 +120,7 @@ export default function ReservationPage() {
       }
 
     return (
-    <div className="p-6">
+    <div className="p-6 max-w-200">
 
         <h1 className="text-2xl font-bold mb-6">
             Reserve a Table
@@ -145,34 +138,43 @@ export default function ReservationPage() {
             setPeople={setPeople}
             zone={zone}
             setZone={setZone}
+            preference={preference}
+            setPreference={setPreference}
             date={date}
             setDate={setDate}
             startTime={startTime}
-            setStartTime={setStartTime}
+            setStartTime={handleStartTimeChange}
             endTime={endTime}
-            setEndTime={setEndTime}
+            setEndTime={handleEndTimeChange}
         />
         <div className="mb-5 flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm shadow-sm">
             <p className="text-slate-700">
                 <span className="font-semibold text-red-600">Red tables</span> are already reserved for the selected period.
             </p>
             <p className="text-slate-700">
-                <span className="font-semibold text-green-600">Green tables</span> are the current recommendation for your group.
+                <span className="font-semibold text-green-600">Green table</span> is the best table for your group.
             </p>
             {zone && zone !== TableZone.ALL && (
                 <p className="text-slate-700">
                     Only tables in the <span className="font-semibold">{zone === TableZone.PRIVATE_ROOM ? "private room" : zone.toLowerCase()}</span> zone can be selected.
                 </p>
             )}
+            {preference && (
+                <p className="text-slate-700">
+                    Preference: <span className="font-semibold">{preference === "WINDOW" ? "near window" : preference === "PRIVATE" ? "private room" : "near play area"}</span>.
+                </p>
+            )}
         </div>
 
-        <FloorPlan
-            tables={tables}
-            reservedTableIds={reservedTableIds}
-            onTableClick={handleTableClick}
-            adminMode={adminMode}
-            activeZone={zone}
-        />
+        <div className="min-h-[36rem] h-160 w-full">
+            <FloorPlan
+                tables={tables}
+                reservedTableIds={reservedTableIds}
+                onTableClick={handleTableClick}
+                adminMode={adminMode}
+                activeZone={zone}
+            />
+        </div>
 
         {isBookingOpen && selectedTable && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">

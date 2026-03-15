@@ -11,7 +11,5 @@ public class ReservationRequest {
     private String customerName;
     private int guestCount;
     private LocalDateTime startTime;
-
-    // getters setters
 }
 

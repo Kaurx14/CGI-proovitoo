@@ -6,6 +6,7 @@ import com.kaurvadi.Restaurant.entity.RestaurantTable;
 import com.kaurvadi.Restaurant.entity.Zone;
 import com.kaurvadi.Restaurant.repository.ReservationRepository;
 import com.kaurvadi.Restaurant.repository.TableRepository;
+import com.kaurvadi.Restaurant.utils.TableUtils;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -27,6 +28,7 @@ public class TableService {
         this.reservationRepository = reservationRepository;
     }
 
+    // Method to recommend a table to user based on their preferences, num of guests,time, zone etc
     public RestaurantTable recommendTable(
             int guests,
             LocalDateTime startTime,
@@ -72,9 +74,8 @@ public class TableService {
         return bestTable;
     }
 
-    private int calculateScore(RestaurantTable table,
-                               int guests,
-                               List<Preference> preferences) {
+    // Method to calculate the recommendation score of a given table
+    private int calculateScore(RestaurantTable table, int guests, List<Preference> preferences) {
         int score = 0;
 
         // Capacity efficiency
@@ -88,21 +89,22 @@ public class TableService {
         // Preference scoring
         if (preferences != null) {
             if (preferences.contains(Preference.WINDOW) && table.isNearWindow())
-                score += 15;
+                score += 25;
 
-            if (preferences.contains(Preference.QUIET) && table.isQuietCorner())
-                score += 15;
+            if (preferences.contains(Preference.PRIVATE) && table.getZone() == Zone.PRIVATE_ROOM)
+                score += 25;
 
             if (preferences.contains(Preference.NEAR_PLAY_AREA) && table.isNearPlayArea())
-                score += 15;
+                score += 25;
         }
 
         return score;
     }
 
+    // Method to update the position of a table when admin has relocated the table
     public RestaurantTable updatePosition(Long id, int x, int y, Zone requestedZone) {
         RestaurantTable table = tableRepository.findById(id).orElseThrow();
-        int[] span = getSpan(table.getCapacity());
+        int[] span = TableUtils.getSpan(table.getCapacity());
         Zone resolvedZone = resolveZone(x, y, span[0], span[1]);
 
         if (resolvedZone == null) {
@@ -118,17 +120,25 @@ public class TableService {
         table.setXPosition(x);
         table.setYPosition(y);
         table.setZone(resolvedZone);
+        applyPreferenceAreas(table);
 
         return tableRepository.save(table);
     }
 
+    // Change the preference area of the relocated table
+    private void applyPreferenceAreas(RestaurantTable table) {
+        int[] span = TableUtils.getSpan(table.getCapacity());
+        TableUtils.applyPreferenceAreas(table, span);
+    }
+
+    // Ensure that there is no overlap with an existing table
     private void validateNoOverlap(Long tableId, int x, int y, int width, int height) {
         for (RestaurantTable existingTable : tableRepository.findAll()) {
             if (existingTable.getId().equals(tableId)) {
                 continue;
             }
 
-            int[] existingSpan = getSpan(existingTable.getCapacity());
+            int[] existingSpan = TableUtils.getSpan(existingTable.getCapacity());
             boolean overlaps = x < existingTable.getXPosition() + existingSpan[0]
                     && x + width > existingTable.getXPosition()
                     && y < existingTable.getYPosition() + existingSpan[1]
@@ -140,41 +150,24 @@ public class TableService {
         }
     }
 
+    // Method to check which zone the table belongs to
     private Zone resolveZone(int x, int y, int width, int height) {
         if (x < 0 || y < 0 || x + width > GRID_WIDTH || y + height > GRID_HEIGHT) {
             return null;
         }
 
-        if (x + width <= 8) {
-            if (y + height <= 3) {
-                return Zone.TERRACE;
-            }
+        if (y + height <= 5) {
+            return Zone.TERRACE;
+        }
 
-            if (y >= 3 && y + height <= 8) {
-                return Zone.INDOOR;
-            }
+        if (y >= 5 && y + height <= 8) {
+            return Zone.INDOOR;
+        }
 
-            if (y >= 8) {
-                return Zone.PRIVATE_ROOM;
-            }
+        if (y >= 8) {
+            return Zone.PRIVATE_ROOM;
         }
 
         return null;
-    }
-
-    private int[] getSpan(int capacity) {
-        if (capacity <= 2) {
-            return new int[]{1, 1};
-        }
-
-        if (capacity <= 4) {
-            return new int[]{2, 1};
-        }
-
-        if (capacity <= 6) {
-            return new int[]{2, 2};
-        }
-
-        return new int[]{3, 2};
     }
 }

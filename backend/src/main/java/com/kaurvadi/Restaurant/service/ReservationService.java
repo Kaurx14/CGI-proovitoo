@@ -36,8 +36,7 @@ public class ReservationService {
         return reservationRepository.findByStartTimeBeforeAndEndTimeAfter(endTime, startTime);
     }
 
-
-    // TODO: use the version with IDs instead of objects
+    // Method to get the IDs of the reserved tables
     public List<Long> getReservedTableIds(LocalDateTime startTime, LocalDateTime endTime) {
         return reservationRepository
                 .findByStartTimeBeforeAndEndTimeAfter(endTime, startTime)

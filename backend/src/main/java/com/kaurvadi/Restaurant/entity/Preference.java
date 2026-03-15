@@ -2,6 +2,6 @@ package com.kaurvadi.Restaurant.entity;
 
 public enum Preference {
     WINDOW,
-    QUIET,
+    PRIVATE,
     NEAR_PLAY_AREA
 }

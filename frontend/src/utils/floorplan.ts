@@ -1,5 +1,11 @@
 import type { Table, TableZone } from "@/types/Table"
 
+/* The following util script is created by AI.
+    It includes helper functions to get table size,
+    check whether a table overlaps and whether a table can be placed.
+    We also define zone area and preference area types here.
+*/
+
 export const GRID_COLUMNS = 10
 export const GRID_ROWS = 10
 
@@ -16,12 +22,51 @@ type ZoneArea = {
     height: number
 }
 
-// Here we assign the zones and theri sizes
+type FeatureArea = {
+    id: string
+    label: string
+    x: number
+    y: number
+    width: number
+    height: number
+    className: string
+}
+
+// Here we assign the zones and their sizes
 export const FLOORPLAN_ZONES: ZoneArea[] = [
-    { zone: "ALL", x: 0, y: 0, width: 40, height: 16 },
     { zone: "TERRACE", x: 0, y: 0, width: 10, height: 5 },
-    { zone: "INDOOR", x: 0, y: 4, width: 10, height: 4 },
+    { zone: "INDOOR", x: 0, y: 5, width: 10, height: 3 },
     { zone: "PRIVATE_ROOM", x: 0, y: 8, width: 10, height: 2 },
+]
+
+export const FLOORPLAN_FEATURES: FeatureArea[] = [
+    {
+        id: "indoor-window-left",
+        label: "Near window",
+        x: 0,
+        y: 5,
+        width: 2,
+        height: 3,
+        className: "bg-white/35 border-white/60",
+    },
+    {
+        id: "indoor-window-right",
+        label: "Near window",
+        x: 8,
+        y: 5,
+        width: 2,
+        height: 3,
+        className: "bg-white/35 border-white/60",
+    },
+    {
+        id: "terrace-play-area",
+        label: "Near play area",
+        x: 7,
+        y: 0,
+        width: 3,
+        height: 3,
+        className: "bg-orange-200/55 border-orange-300/80",
+    },
 ]
 
 // Calculate size of table

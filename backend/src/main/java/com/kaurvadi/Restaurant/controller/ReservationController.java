@@ -35,22 +35,13 @@ public class ReservationController {
         );
     }
 
-    // Temporary endpoint to get all reservations
+    // endpoint to get all reservations
     @GetMapping("/all")
     public List<Reservation> getAllReservations() {
         return reservationService.getAllReservations();
     }
 
-
-    // TODO: Use IDs
-    // @GetMapping("/overlaps")
-    // public List<Reservation> getOverlappingReservations(
-    //         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
-    //         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime
-    // ) {
-    //     return reservationService.getOverlappingReservations(startTime, endTime);
-    // }
-
+    // Endpoint to get table IDs that are booked
     @GetMapping("/overlaps/table-ids")
     public List<Long> getReservedTableIds(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
@@ -59,6 +50,7 @@ public class ReservationController {
         return reservationService.getReservedTableIds(startTime, endTime);
     }
 
+    // Endpoint to get the table recommended to the user
     @GetMapping("/recommended-table")
     public Long getRecommendedTableId(
             @RequestParam int guests,

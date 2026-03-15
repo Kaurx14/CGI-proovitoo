@@ -23,6 +23,7 @@ export const getAllReservations = async (): Promise<Reservation[]> => {
   return result.data
 }
 
+// Function get IDs of the reserved tables, to color them red later
 export const getReservedTableIds = async (startTime: string, endTime: string): Promise<number[]> => {
   const result = await api.get("/reservations/overlaps/table-ids", {
     params: { startTime, endTime },

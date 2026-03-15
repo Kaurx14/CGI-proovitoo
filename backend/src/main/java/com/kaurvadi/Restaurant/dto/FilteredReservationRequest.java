@@ -7,7 +7,7 @@ import com.kaurvadi.Restaurant.entity.Zone;
 import java.time.LocalDateTime;
 import java.util.List;
 
-// A DTO to retrieve
+// A DTO of data for filtered reservation requests
 @Getter
 public class FilteredReservationRequest {
     private LocalDateTime startTime;
