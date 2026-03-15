@@ -1,5 +1,5 @@
 
-// The following 4 time-related helper functions are created by AI to ensure correct time format
+// The following 5 time-related helper functions are created by AI to ensure correct time format
 // with backend. Also to add 2 hours to the start time, when setting end time by default. 
 // Initially I struggled with "Bad Requests" to backend and it took me some time to realize that
 // the time format that frontend sent did not match what the backend expected
@@ -28,6 +28,18 @@ export function buildIsoDateTime(date: string, time: string): string {
 export function parseTimeToMinutes(time: string): number {
     const [hours, minutes] = time.split(":").map(Number)
     return hours * 60 + minutes
+}
+
+// In the reservation filter, all times can be selected (native input wrapper logic). However
+// this function rounds it to the nearest quarter, so we always have 15 minute intervals.
+export function roundTimeToQuarterHour(time: string): string {
+    const totalMinutes = parseTimeToMinutes(time)
+    const roundedMinutes = Math.round(totalMinutes / 15) * 15
+    const normalizedMinutes = ((roundedMinutes % (24 * 60)) + (24 * 60)) % (24 * 60)
+    const hours = Math.floor(normalizedMinutes / 60)
+    const minutes = normalizedMinutes % 60
+
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`
 }
 
 export function addHoursToTime(time: string, hours: number): string {

@@ -18,10 +18,10 @@ public class ReservationService {
     }
 
     // Method to create the reservation
-    public Reservation createReservation(Long tableId, String customerName, int guestCount, LocalDateTime startTime) {
+    public Reservation createReservation(Long tableId, String customerName, int guestCount, LocalDateTime startTime, LocalDateTime endTime) {
         RestaurantTable restaurantTable = tableRepository.findById(tableId).orElseThrow();
 
-        Reservation reservation = new Reservation(customerName, guestCount, startTime, startTime.plusHours(2), restaurantTable);
+        Reservation reservation = new Reservation(customerName, guestCount, startTime, endTime, restaurantTable);
 
         return reservationRepository.save(reservation);
     }

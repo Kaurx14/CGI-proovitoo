@@ -3,6 +3,7 @@ import { createReservation, getRecommendedTable, getReservedTableIds } from "@/a
 import type { Table } from "@/types/Table"
 import type { Preference } from "@/types/Preference"
 import type { TableZone } from "@/types/Table"
+import { buildIsoDateTime } from "@/utils/timeUtils"
 
 // Represents a reservation that has just been sucessfully created
 // Used in confirmation page.
@@ -91,9 +92,10 @@ export const useReservationStore = create<ReservationStore>((set) => ({
   // Creates a reservation in the backend and stores confirmation details locally
   bookTable: async ({ tableId, customerName, guestCount, startTime, date, endTime, restaurantTable, preference }) => {
     // combine date + time to ISO datetime. Format expected by backend
-    const startDateTime = `${date}T${startTime}`
+    const startDateTime = buildIsoDateTime(date, startTime)
+    const endDateTime = buildIsoDateTime(date, endTime)
     // create in backend
-    const reservation = await createReservation({ tableId, customerName, guestCount, startTime: startDateTime, date, endTime, restaurantTable })
+    const reservation = await createReservation({ tableId, customerName, guestCount, startTime: startDateTime, endTime: endDateTime })
 
     set({
       lastConfirmedReservation: {

@@ -11,5 +11,5 @@ public class ReservationRequest {
     private String customerName;
     private int guestCount;
     private LocalDateTime startTime;
+    private LocalDateTime endTime;
 }
-

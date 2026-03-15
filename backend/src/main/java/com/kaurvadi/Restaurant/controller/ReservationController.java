@@ -31,7 +31,8 @@ public class ReservationController {
                 request.getTableId(),
                 request.getCustomerName(),
                 request.getGuestCount(),
-                request.getStartTime()
+                request.getStartTime(),
+                request.getEndTime()
         );
     }
 

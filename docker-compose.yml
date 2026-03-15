@@ -28,6 +28,14 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/restaurant
       DB_USERNAME: user
       DB_PASSWORD: password
+    
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
 
 volumes:
   postgres_data:

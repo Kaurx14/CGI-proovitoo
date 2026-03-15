@@ -1,10 +1,10 @@
 import { api } from "./client"
-import type { Reservation } from "@/types/Reservation"
+import type { CreateReservationPayload } from "@/types/Reservation"
 import type { Preference } from "@/types/Preference"
 import type { TableZone } from "@/types/Table"
 
 // Function to create a new reservation
-export const createReservation = async (data: Omit<Reservation, "id">) => {
+export const createReservation = async (data: CreateReservationPayload) => {
   const result = await api.post("/reservations", data)
   return result.data
 }

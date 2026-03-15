@@ -20,7 +20,7 @@ type Props = {
     reservedTableIds: number[]
     onTableClick?: (table: Table) => void
     adminMode: boolean
-    activeZone?: TableZone | ""
+    activeZone?: TableZone
     className?: string
 }
 
@@ -143,7 +143,7 @@ export function FloorPlan({
             {visibleTables.map((table) => {
                 const { colSpan, rowSpan } = getCellSpan(table.capacity)
                 const isReserved = reservedTableIds.includes(table.id)
-                const isOutsideSelectedZone = !adminMode && Boolean(activeZone) && table.zone !== activeZone && activeZone !== TableZone.ALL
+                const isOutsideSelectedZone = !adminMode && activeZone !== undefined && activeZone !== TableZone.ALL && table.zone !== activeZone
 
                 const handleClick = !isReserved && !isOutsideSelectedZone && onTableClick
                     ? () => onTableClick(table)

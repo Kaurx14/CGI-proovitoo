@@ -7,7 +7,7 @@ import { TableZone, type Table, type TableZone as TableZoneType } from "@/types/
 import { type Preference } from "@/types/Preference"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { getDefaultDateTime, addHoursToTime, parseTimeToMinutes, buildIsoDateTime } from "@/utils/timeUtils"
+import { getDefaultDateTime, addHoursToTime, parseTimeToMinutes, buildIsoDateTime, roundTimeToQuarterHour } from "@/utils/timeUtils"
 import { useNavigate } from "react-router-dom"
 
 // Main page for reserving a table
@@ -20,7 +20,7 @@ export default function ReservationPage() {
     const [startTime, setStartTime] = useState(() => getDefaultDateTime().time)
     const [endTime, setEndTime] = useState(() => addHoursToTime(getDefaultDateTime().time, 2)) // By default 2 hours
     const [people, setPeople] = useState(2)
-    const [zone, setZone] = useState<TableZoneType | "">("")
+    const [zone, setZone] = useState<TableZoneType>(TableZone.ALL)
     const [preference, setPreference] = useState<Preference | "">("")
 
     const {
@@ -40,10 +40,11 @@ export default function ReservationPage() {
 
     // Change start time of reservation
     const handleStartTimeChange = (value: string) => {
-        setStartTime(value)
+        const roundedValue = roundTimeToQuarterHour(value)
+        setStartTime(roundedValue)
 
-        if (parseTimeToMinutes(endTime) < parseTimeToMinutes(value) + 60) {
-            setEndTime(addHoursToTime(value, 1))
+        if (parseTimeToMinutes(endTime) < parseTimeToMinutes(roundedValue) + 60) {
+            setEndTime(addHoursToTime(roundedValue, 1))
         }
     }
 
@@ -53,12 +54,14 @@ export default function ReservationPage() {
     // changed to start time + 1 hour. This ensures that a reservation of a table
     // lasts at least 1 hour.
     const handleEndTimeChange = (value: string) => {
-        if (parseTimeToMinutes(value) < parseTimeToMinutes(startTime) + 60) {
+        const roundedValue = roundTimeToQuarterHour(value)
+
+        if (parseTimeToMinutes(roundedValue) < parseTimeToMinutes(startTime) + 60) {
             setEndTime(addHoursToTime(startTime, 1))
             return
         }
 
-        setEndTime(value)
+        setEndTime(roundedValue)
     }
 
     // Reload the tables when user changes filters
@@ -69,7 +72,13 @@ export default function ReservationPage() {
       
         setStoreDate(date)
         fetchAll(startIso, endIso)
-        fetchRecommendedTable(people, startIso, endIso, zone || undefined, selectedPreferences)
+        fetchRecommendedTable(
+            people,
+            startIso,
+            endIso,
+            zone === TableZone.ALL ? undefined : zone,
+            selectedPreferences
+        )
     }, [date, startTime, endTime, people, zone, preference, setStoreDate, fetchAll, fetchRecommendedTable])
 
     // Can not book a table when guest count > table capacity
@@ -154,7 +163,7 @@ export default function ReservationPage() {
             <p className="text-slate-700">
                 <span className="font-semibold text-green-600">Green table</span> is the best table for your group.
             </p>
-            {zone && zone !== TableZone.ALL && (
+            {zone !== TableZone.ALL && (
                 <p className="text-slate-700">
                     Only tables in the <span className="font-semibold">{zone === TableZone.PRIVATE_ROOM ? "private room" : zone.toLowerCase()}</span> zone can be selected.
                 </p>
